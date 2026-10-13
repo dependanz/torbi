@@ -31,10 +31,25 @@ if platform.system() == "Windows":
 else:
     lib_files = list(Path(__file__).parent.glob("_C*.so"))
 
+
+def _load_library(lib_file):
+    """Load the compiled library into the installed version of torch"""
+    try:
+        torch.ops.load_library(lib_file)
+    except OSError as error:
+        raise ImportError(
+            f'Could not load {lib_file.name} into torch {torch.__version__}. '
+            'The torbi library must be compiled against the installed '
+            'version of torch. When installing torbi from source, install '
+            'torch first and then use "pip install --no-build-isolation", '
+            'so that pip does not compile against a different torch.'
+        ) from error
+
+
 if len(lib_files) == 0: # no lib files found
     raise FileNotFoundError('No library files found (.so or .pyd). Your torbi install is somehow corrupt')
 elif len(lib_files) == 1: # one lib file found
-    torch.ops.load_library(lib_files[0])
+    _load_library(lib_files[0])
 else: # multiple lib files, choose the one that corresponds to torch/cuda version
     # get torch, cuda versions
     torch_version = torch.__version__.split('+')[0]
@@ -56,7 +71,7 @@ else: # multiple lib files, choose the one that corresponds to torch/cuda versio
     elif len(lib_candidates) > 1:
         raise RuntimeError(f"Found {len(lib_candidates)} lib files matching version {binary_version_string}, expected only 1")
     else:
-        torch.ops.load_library(lib_candidates[0])
+        _load_library(lib_candidates[0])
 
 
 if torch.backends.mps.is_available():

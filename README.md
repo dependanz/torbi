@@ -44,10 +44,11 @@ Highly parallelizable Viterbi decoding for CPU or GPU compute. Below are time be
 
 ```bash
 git clone git@github.com:maxrmorrison/torbi
-pip install torbi/
+pip install "setuptools<70" wheel numpy
+pip install --no-build-isolation torbi/
 ```
 
-If you receive an error message regarding mismatched CUDA versions, change the torch version in `pyproject.toml` to your currently installed version of `torch`.
+Install the version of `torch` you intend to use before installing `torbi`. `--no-build-isolation` makes `pip` compile `torbi` against that `torch`. Without it, `pip` compiles against whichever `torch` it downloads for the build, and the result may not load or may lack CUDA support.
 
 To perform evaluation of the accuracy and speed of decoding methods, install `torbi` with the additional evaluation dependencies.
 
