@@ -1,7 +1,9 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include <math_constants.h>
 #include <torch/library.h>
 #include <ATen/ATen.h>
+#include <c10/cuda/CUDAException.h>
 
 #include <vector>
 
@@ -85,10 +87,18 @@ __global__ void viterbi_make_trellis_kernel(
         int max_index;
         float max_value;
         for (int j = warp_id; j < states; j += num_warps) {
-            // Indices start out as just 0-warpSize for the first warpSize elements in the array
-            max_index = thread_warp_id;
-            // Values start as the first warpSize elements in the row, with row selected by j
-            max_value = posterior_current[thread_warp_id] + transition[j * states + thread_warp_id];
+            if (thread_warp_id < states) {
+                // Indices start out as just 0-warpSize for the first warpSize elements in the array
+                max_index = thread_warp_id;
+                // Values start as the first warpSize elements in the row, with row selected by j
+                max_value = posterior_current[thread_warp_id] + transition[j * states + thread_warp_id];
+            } else {
+                // With fewer states than threads in a warp, the remaining threads have no
+                // element of the row to read. Start them at the identity of the argmax so
+                // that they never win the reduction below
+                max_index = 0;
+                max_value = -CUDART_INF_F;
+            }
 
             // Slide the warp over the row in a linear argmax search (parallelized by threads within the warp)
             // Note that we start here offset by the warpSize since we already initialized using the first chunk
@@ -238,6 +248,9 @@ void viterbi_make_trellis_cuda(
         trellis.data_ptr<int>(),
         max_frames,
         states);
+    // Raise if the kernel could not be launched (e.g., when this library was
+    // not compiled for the architecture of this GPU) instead of returning zeros
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
 /// C++ API for second step of Viterbi decoding: backtracing the trellis
@@ -286,6 +299,7 @@ void viterbi_backtrace_trellis_cuda(
         batch_size,
         max_frames,
         states);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
 /// Decode time-varying categorical distributions using Viterbi decoding
