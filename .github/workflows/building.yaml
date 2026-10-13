@@ -169,7 +169,8 @@ jobs:
       - name: Build wheel for GPU
         if: ${{ matrix.cuda-version != 'cpu' }}
         run: |
-          export TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.7;8.9;9.0"
+          # +PTX lets the driver compile for GPU architectures newer than 9.0
+          export TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.7;8.9;9.0+PTX"
           FORCE_CUDA=1 python -m build --wheel --no-isolation
           rm -rf build
           USE_CUDA=1 python build_ext_standalone.py
