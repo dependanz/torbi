@@ -3,7 +3,6 @@ from pathlib import Path
 
 import torch
 import torchutil
-import torchaudio
 import zipfile
 import json
 
@@ -94,6 +93,8 @@ def daps():
 
 def vctk():
     """Download vctk dataset"""
+    import torchaudio
+
     directory = torbi.DATA_DIR / 'vctk'
     directory.mkdir(exist_ok=True, parents=True)
     torchutil.download.zip(
@@ -183,6 +184,8 @@ def vctk():
 
 def resample(audio, sample_rate):
     """Resample audio to ProMoNet sample rate"""
+    import torchaudio
+
     # Cache resampling filter
     key = str(sample_rate)
     if not hasattr(resample, key):

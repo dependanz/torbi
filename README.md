@@ -44,7 +44,7 @@ Highly parallelizable Viterbi decoding for CPU or GPU compute. Below are time be
 
 ```bash
 git clone git@github.com:maxrmorrison/torbi
-pip install "setuptools<70" wheel numpy
+pip install setuptools wheel ninja numpy
 pip install --no-build-isolation torbi/
 ```
 

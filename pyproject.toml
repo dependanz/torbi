@@ -1,6 +1,7 @@
 [build-system]
 requires = [
-    "setuptools>=61.0,<70",
+    "setuptools>=61.0",
+    "ninja",
     "numpy",
     "torch"
 ]
@@ -17,7 +18,7 @@ description = "Optimized Viterbi decoding and fast approximations"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "numpy", "torch", "torchutil", "yapecs", "tqdm", "torchaudio", "ninja; platform_system == 'Darwin' and platform_machine == 'arm64'"
+    "numpy", "torch", "torchutil", "yapecs", "tqdm", "ninja; platform_system == 'Darwin' and platform_machine == 'arm64'"
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License"
